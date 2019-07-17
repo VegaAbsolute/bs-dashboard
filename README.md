@@ -1,1 +1,1 @@
-prod-dashboard
+Device_web_GUI

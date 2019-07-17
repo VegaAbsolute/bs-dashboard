@@ -1,0 +1,25 @@
+{
+	"serverConfigs": {
+		"description": "",
+		"frontAppPort": 80,
+		"serverPort": 3001,
+		"language": "ru"
+	},
+	"loraGlobalConfigs": {
+		"description": "",
+		"filePath": "/home/root/LoRa/packet_forwarder/lora_pkt_fwd/",
+		"fileName": "global_conf.json"
+	},
+	"networkConfigs": {
+		"description": "",
+		"filePath": "/etc/network/",
+		"fileName": "interfaces"
+	},
+	"wireless3GConfigs": {
+		"description": "isSupported-{true/false/auto('auto' means auto checking)} ",
+		"isSupported": "auto",
+		"interfaceManagerFilePath": "/home/root/interface_manager.sh",
+		"filePath": "/etc/",
+		"fileName": "wvdial.conf"
+	}
+}
