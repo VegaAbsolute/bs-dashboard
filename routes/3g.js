@@ -4,7 +4,6 @@ var router = express.Router();
 router.post('/', (request, response, next) => {
     const { Session, logger, SETTINGS, ISSUPPORT3G } = request.appParams;
     try {
-        const { filePath, fileName } = SETTINGS.wireless3GConfigs;
         const { cmd='', data={}, loginToken='' } = request.body;
 
         const access = Session.checkToken(loginToken, request.headers.origin);
@@ -15,10 +14,10 @@ router.post('/', (request, response, next) => {
         if (access) {
             logger.info('3g is supported = ' + ISSUPPORT3G, 1);
             if (ISSUPPORT3G) {
-                const $3gConfigsHandler = require('../src/unit-for-3g-configs/3g-configs-handler.js').$3gConfigsHandler;
+                const $3gConfigsHandler = require('../src/pages/3g-configs/3g-configs-handler.js').$3gConfigsHandler;
                 $3gConfigsHandler({
                     cmd,
-                    filePath: filePath + fileName,
+                    SETTINGS,
                     data,
                     response,
                     logger

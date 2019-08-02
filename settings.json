@@ -10,16 +10,25 @@
 		"filePath": "/home/root/LoRa/packet_forwarder/lora_pkt_fwd/",
 		"fileName": "global_conf.json"
 	},
+	"loraVersionFile": {
+		"description": "",
+		"fileDir": "/home/root/LoRa/packet_forwarder/",
+		"fileName": "VERSION"
+	},
 	"networkConfigs": {
 		"description": "",
-		"filePath": "/etc/network/",
-		"fileName": "interfaces"
+		"fileDir": "/etc/network/",
+		"fileName": "interfaces",
+		"DnsFileName": "eth0_resolv.conf"
 	},
 	"wireless3GConfigs": {
 		"description": "isSupported-{true/false/auto('auto' means auto checking)} ",
 		"isSupported": "auto",
-		"interfaceManagerFilePath": "/home/root/interface_manager.sh",
-		"filePath": "/etc/",
+		"interfaceManagerFileDir": "/home/root/",
+		"interfaceManagerFileName": "interface_manager.sh",
+		"fileDir": "/etc/",
 		"fileName": "wvdial.conf"
-	}
+	},
+	"loggerLevel": "info",
+	"maxLevelForConsoleLogger": "verbose"
 }

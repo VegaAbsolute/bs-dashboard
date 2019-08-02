@@ -13,7 +13,7 @@ router.post('/', (request, response, next) => {
 
         logger.info(`POST/AUTHORIZATION: cmd = ${cmd}`);
 
-        const authorizationHandler = require('../src/authorization/authorization-handler.js').authorizationHandler;
+        const authorizationHandler = require('../src/pages/authorization/authorization-handler.js').authorizationHandler;
         authorizationHandler({cmd, DASHBOARD_ROOT_DIR, data, requestOrigin, Session, response, additionalDataResponse, logger});
 
     } catch (err) {

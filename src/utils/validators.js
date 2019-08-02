@@ -1,14 +1,18 @@
-const portValidator = (data) => {
-    let text = '' + data;
-    number = Number.parseInt(text);
-
+const numberValidator = (number, min, max) => {
+    if (typeof number !== 'number') {
+        return false;
+    }
     if (isNaN(number)) {
         return false;
     }
-    if (number < 0 || number > 65535) {
-        return false;
+    if (number >= min && number <= max) {
+        return true;
     }
-    return true;
+    return false;
+}
+
+const portValidator = (number) => {
+    return numberValidator(number, 0, 65535);
 }
 
 const ipValidator = (str) => {
@@ -21,7 +25,10 @@ const ipValidator = (str) => {
     }
     for (var i = 0; i < ipArray.length; i++) {
         const number = Number.parseInt(ipArray[i]);
-        if (isNaN(number)) {
+        if (('' + number) !== ipArray[i]) {
+            isValid = false;
+            break;
+        } else if (isNaN(number)) {
             isValid = false;
             break;
         } else if (number < 0 || number > 255) {
@@ -30,6 +37,25 @@ const ipValidator = (str) => {
         }
     }
     return isValid;
+}
+
+const ipWithPortValidator = (text) => {
+    const indexOfDoubleDot = text.indexOf(':');
+    const ipText = indexOfDoubleDot > 0 ? text.substring(0, indexOfDoubleDot) : text;
+    const portText = indexOfDoubleDot > 0 ? text.substring(indexOfDoubleDot + 1) : null;
+
+    const ipValidResult = ipValidator(ipText);
+    if (!ipValidResult) {
+        return false;
+    }
+    if (indexOfDoubleDot > 0) {
+        const portNum = Number.parseInt(portText);
+        const portValidResult = portValidator(portNum);
+        if (!portValidResult || ('' + portNum !== portText)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 const netMaskValidator = (str) => {
@@ -51,6 +77,9 @@ const netMaskValidator = (str) => {
     let mask = '';
     for (var i = 0; i < maskArrayString.length; i++) {
         const number = Number.parseInt(maskArrayString[i]);
+        if (('' + number) !== maskArrayString[i]) {
+            return false;
+        }
         if (isNaN(number)) {
             return false;
         } else if (number < 0 || number > 255) {
@@ -98,8 +127,26 @@ const netMaskValidator = (str) => {
     return true;
 }
 
-const providerAdressValidator = (str) => {
-    const re = /^((http[s]?:\/\/)?[a-z0-9_-]{0,12}[a-z0-9]{1,1}\.){1,4}[a-z]{2,4}$/;
+const domainAdressValidator = (str) => {
+    if (str.length > 255) {
+        return false
+    }
+    const re = /^(http[s]?:\/\/)?([a-z0-9]{1,1}[a-z0-9-]{0,63}[a-z0-9]{1,1}\.){1,4}[a-z]{2,4}(:[0-9]{1,5})?(\/[a-z0-9]{1,1}[a-z0-9-]{0,63}[a-z0-9]{1,1}){0,7}$/i;
+    const valid = re.test(str);
+    return valid;
+}
+
+const domainAdressWithoutProtocolValidator = (str) => {
+    if (str.length > 255) {
+        return false
+    }
+    const re = /^([a-z0-9]{1,1}[a-z0-9-]{0,63}[a-z0-9]{1,1}\.){1,4}[a-z]{2,4}(:[0-9]{1,5})?(\/[a-z0-9]{1,1}[a-z0-9-]{0,63}[a-z0-9]{1,1}){0,7}$/i;
+    const valid = re.test(str);
+    return valid;
+}
+
+const partOfUrlPathValidator = (str) => {
+    const re = /^[a-z0-9]{1,1}[a-z0-9-]{0,63}[a-z0-9]{1,1}$/i;
     const valid = re.test(str);
     return valid;
 }
@@ -116,9 +163,13 @@ const namePassValidator = (str) => {
     return valid;
 }
 
-exports.providerAdressValidator = providerAdressValidator;
+exports.domainAdressValidator = domainAdressValidator;
+exports.domainAdressWithoutProtocolValidator = domainAdressWithoutProtocolValidator;
+exports.partOfUrlPathValidator = partOfUrlPathValidator;
 exports.providerPhoneValidator = providerPhoneValidator;
 exports.namePassValidator = namePassValidator;
 exports.portValidator = portValidator;
 exports.ipValidator = ipValidator;
+exports.ipWithPortValidator = ipWithPortValidator;
 exports.netMaskValidator = netMaskValidator;
+exports.numberValidator = numberValidator;

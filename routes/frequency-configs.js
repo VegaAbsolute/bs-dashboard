@@ -14,7 +14,7 @@ router.post('/', (request, response, next) => {
         logger.info(`Access = ${access}`);
 
         if (access) {
-            const loraFrequencyConfigsHandler = require('../src/unit-for-lora-frequency-configs/lora-frequency-configs-handler.js').loraFrequencyConfigsHandler;
+            const loraFrequencyConfigsHandler = require('../src/pages/lora-frequency-configs/lora-frequency-configs-handler.js').loraFrequencyConfigsHandler;
             loraFrequencyConfigsHandler({cmd, filePath: filePath + fileName, defaultFilePath, data, response, dirName, logger});
         } else {
             response.json({ cmd, result: false, msg: 'login_not_performed' });

@@ -5,7 +5,6 @@ router.post('/', (request, response, next) => {
     const { Session, logger, SETTINGS } = request.appParams;
 
     try {
-        const { filePath, fileName } = SETTINGS.networkConfigs;
         const { cmd='', data={}, loginToken='' } = request.body;
 
         const access = Session.checkToken(loginToken, request.headers.origin);
@@ -14,8 +13,8 @@ router.post('/', (request, response, next) => {
         logger.info(`Access = ${access}`);
 
         if (access) {
-            const networkConfigsHandler = require('../src/unit-for-network-configs/network-configs-handler.js').networkConfigsHandler;
-            networkConfigsHandler({cmd, filePath: filePath + fileName, data, response, logger});
+            const networkConfigsHandler = require('../src/pages/network-configs/network-configs-handler.js').networkConfigsHandler;
+            networkConfigsHandler({cmd, SETTINGS, data, response, logger});
         } else {
             response.json({ cmd, result: false, msg: 'login_not_performed' });
         }

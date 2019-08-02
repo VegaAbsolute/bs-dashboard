@@ -14,7 +14,7 @@ router.post('/', (request, response, next) => {
         logger.info(`Access = ${access}`);
 
         if (access) {
-            const loraGlobalConfigsHandler = require('../src/unit-for-lora-global-configs/lora-global-configs-handler.js').loraGlobalConfigsHandler;
+            const loraGlobalConfigsHandler = require('../src/pages/lora-global-configs/lora-global-configs-handler.js').loraGlobalConfigsHandler;
             loraGlobalConfigsHandler({cmd, filePath: filePath + fileName, defaultFilePath, data, response, logger});
         } else {
             logger.info('login_not_performed');

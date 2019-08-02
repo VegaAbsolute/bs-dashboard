@@ -6,7 +6,7 @@ router.post('/', (request, response, next) => {
         Session,
         logger,
         SETTINGS,
-        DASHBOARD_ROOT_DIR, 
+        DASHBOARD_ROOT_DIR,
         SERVER_PACKAGE,
         lastVersionData,
         managerVersion
@@ -20,8 +20,8 @@ router.post('/', (request, response, next) => {
         logger.info(`Access = ${access}`, 1);
 
         if (access) {
-            const deviceHandler = require('../src/unit-for-device/device-handler.js').deviceHandler;
-            deviceHandler({
+            const aboutHandler = require('../src/pages/about/about-handler.js').aboutHandler;
+            aboutHandler({
                 cmd,
                 data,
                 response,

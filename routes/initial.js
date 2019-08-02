@@ -9,7 +9,7 @@ router.post('/', (request, response, next) => {
 
         logger.info(`POST/INITIAL: cmd = ${cmd}`);
 
-        const initialHandler = require('../src/initial/initial-handler.js').initialHandler;
+        const initialHandler = require('../src/pages/initial/initial-handler.js').initialHandler;
         initialHandler({cmd, data, SETTINGS, dirName, response, logger});
 
     } catch (err) {

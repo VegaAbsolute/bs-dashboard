@@ -7,13 +7,13 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
-const logger = require('./src/utils/logger.js').logger(__dirname);
-const createBackupFactorySettings = require('./src/unit-for-device/create-backup-factory-settings.js').createBackupFactorySettings;
+const initLogger = require('./src/utils/logger.js').logger(__dirname);
+const createBackupFactorySettings = require('./src/pages/device-actions/create-backup-factory-settings.js').createBackupFactorySettings;
 
-logger.warn('Run BS-Dashboard.');
+initLogger.warn('Run BS-Dashboard.');
 
 try {
-    const Session = new (require('./src/authorization/session.js').Session);
+    const Session = new (require('./src/pages/authorization/session.js').Session);
 
     let managerVersion = '';
     let lastVersionData = {
@@ -24,9 +24,15 @@ try {
     const SERVER_PACKAGE = JSON.parse(fs.readFileSync(__dirname + '/package.json', 'utf8'));
     const DASHBOARD_ROOT_DIR = path.join(__dirname, '..');
 
+    const logger = require('./src/utils/logger.js').logger(__dirname, SETTINGS.loggerLevel, SETTINGS.maxLevelForConsoleLogger);
+
     createBackupFactorySettings(SETTINGS, DASHBOARD_ROOT_DIR + '/backup', logger, () => {
-        const ISSUPPORT3G = require('./src/unit-for-3g-configs/checking-3g-support.js')
-            .checking3GSupport(SETTINGS.wireless3GConfigs.isSupported, SETTINGS.wireless3GConfigs.interfaceManagerFilePath);
+        const ISSUPPORT3G = require('./src/pages/3g-configs/checking-3g-support.js')
+            .checking3GSupport(
+                SETTINGS.wireless3GConfigs.isSupported,
+                SETTINGS.wireless3GConfigs.interfaceManagerFileDir + SETTINGS.wireless3GConfigs.interfaceManagerFileName,
+                logger
+            );
 
         logger.info('3G is supported = ' + ISSUPPORT3G);
 
@@ -104,6 +110,14 @@ try {
             path.join(__dirname, 'public'),
             staticSiteOptions
         ));
+        clientApp.use('/app-settings', express.static(
+            path.join(__dirname, 'public'),
+            staticSiteOptions
+        ));
+        clientApp.use('/actions', express.static(
+            path.join(__dirname, 'public'),
+            staticSiteOptions
+        ));
 
         clientApp.listen(staticSiteOptions.portnum, (error) => {
             if (error) {
@@ -130,6 +144,8 @@ try {
         const networkConfigs = require('./routes/network-configs');
         const $3g = require('./routes/3g');
         const about = require('./routes/about');
+        const appSettings = require('./routes/app-settings');
+        const deviceActions = require('./routes/device-actions');
 
         serverApp.use((request, response, next) => {
 
@@ -159,6 +175,8 @@ try {
         serverApp.use('/network-configs', networkConfigs);
         serverApp.use('/3g', $3g);
         serverApp.use('/about', about);
+        serverApp.use('/app-settings', appSettings);
+        serverApp.use('/device-actions', deviceActions);
 
         // start API server
         const server = serverApp.listen(SETTINGS.serverConfigs.serverPort, (error) => {
@@ -169,9 +187,7 @@ try {
             logger.info(`Dashboard - API server is listening on port ${server.address().port}`);
         });
     })
-
-
-
 } catch (err) {
-    logger.error(err.name + "\n\r" + err.message + "\n\r" + err.stack);
+    initLogger.error(err.name + "\n\r" + err.message + "\n\r" + err.stack);
+    process.exit(-1);
 }
