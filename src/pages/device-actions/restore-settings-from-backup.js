@@ -10,6 +10,11 @@ const restoreSettingsFromBackup = (SETTINGS, backupDir, logger, next) => {
             logger),
         restoreSettingsAction(
             backupDir,
+            SETTINGS.loraGlobalConfigs.filePath,
+            'local_conf.json',
+            logger),
+        restoreSettingsAction(
+            backupDir,
             SETTINGS.networkConfigs.fileDir,
             SETTINGS.networkConfigs.fileName,
             logger),

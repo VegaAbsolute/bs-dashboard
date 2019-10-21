@@ -32,9 +32,9 @@ const writeManagerSettings = (DASHBOARD_ROOT_DIR, data) => (logger) => {
     logger.silly(preparedData);
 
     // Check data for valid
-    const isValid = appManagerSettingsValidator(preparedData, logger);
+    const validationResult = appManagerSettingsValidator(preparedData, logger);
 
-    if (isValid) {
+    if (validationResult.isValid) {
         // get current settings
         const settingsStringJson = fs.readFileSync(DASHBOARD_ROOT_DIR + '/manager/settings.json');
         const settings = JSON.parse(settingsStringJson);
@@ -47,7 +47,7 @@ const writeManagerSettings = (DASHBOARD_ROOT_DIR, data) => (logger) => {
         fs.writeFileSync(DASHBOARD_ROOT_DIR + '/manager/settings.json', stringResultConfigs);
     }
 
-    return isValid;
+    return validationResult;
 }
 
 exports.writeManagerSettings = writeManagerSettings;

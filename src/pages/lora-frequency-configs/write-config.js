@@ -1,11 +1,10 @@
-const fs = require('fs');
-const parseObjectByMask = require('../../utils/parse-object-by-mask.js').parseObjectByMask;
+const write = require('../../utils/lora-config-files-actions/write-config.js').writeConfig;
 const frequencyConfigsValidator = require('../../utils/validators/frequency-configs-validator.js').frequencyConfigsValidator;
 const additionalChannelsValidator = require('../../utils/validators/frequency-configs-validator.js').additionalChannelsValidator;
-const removeComentsFromLoraGlobalConf = require('../../utils/rm-cmnts-from-lora-globalconf.js').removeComentsFromLoraGlobalConf;
+const parseObjectByMask = require('../../utils/parse-object-by-mask.js').parseObjectByMask;
 const mergeDeep =  require('../../utils/merge-deep.js').mergeDeep;
 
-const writeConfig = ({filePath, data: configs, logger}) => {
+const writeConfig = ({SETTINGS, data: configs, logger}) => {
     logger.silly('writeConfig');
     const newConfigsMask = {
         radio_0: { freq: null },
@@ -68,78 +67,36 @@ const writeConfig = ({filePath, data: configs, logger}) => {
         }
     };
 
-    // TODO: remove after testing
-    /*const {
-        radio_0,
-        radio_1,
-        chan_multiSF_0,
-        chan_multiSF_1,
-        chan_multiSF_2,
-        chan_multiSF_3,
-        chan_multiSF_4,
-        chan_multiSF_5,
-        chan_multiSF_6,
-        chan_multiSF_7,
-        chan_FSK,
-        chan_Lora_std
-    } = configs;
-
-    let newConfigs = {
-        SX1301_conf: {
-            radio_0,
-            radio_1,
-            chan_multiSF_0,
-            chan_multiSF_1,
-            chan_multiSF_2,
-            chan_multiSF_3,
-            chan_multiSF_4,
-            chan_multiSF_5,
-            chan_multiSF_6,
-            chan_multiSF_7
-        }
-    };
-    const additionalChannels = {
-        chan_FSK,
-        chan_Lora_std
-    }*/
     let newConfigs = {
         SX1301_conf: parseObjectByMask(configs, newConfigsMask, false)
     };
     const additionalChannels = parseObjectByMask(configs, additionalChannelsMask, false);
 
-    // check to valid
+    // check for valid
     logger.silly(additionalChannels);
-    const isAddChnValid = additionalChannelsValidator(additionalChannels, logger);
+    const addChnValidationResult = additionalChannelsValidator(additionalChannels, logger);
 
     logger.silly(newConfigs);
-    const {
-        isDataValid,
-        descriptionOfNotValid
-    } = frequencyConfigsValidator(newConfigs, logger);
+    const frequencyValidationResult = frequencyConfigsValidator(newConfigs, logger);
 
-    if (descriptionOfNotValid !== '') {
-        logger.verbose(descriptionOfNotValid);
-    }
-
-    const validateResult = isAddChnValid && isDataValid;
+    const validateResult = addChnValidationResult.isValid && frequencyValidationResult.isDataValid;
 
     logger.info('Is valid new configs for write to "global_conf.json" = ' + validateResult);
 
     // merge configs and write to file
-    if (validateResult) {
-        const configsText = fs.readFileSync(filePath, 'utf8');
-        const clearedText = removeComentsFromLoraGlobalConf(configsText, '/*', '*/')
-    	const previousConfigs = JSON.parse(clearedText);
+    const result = write({
+        SETTINGS,
+        data: mergeDeep({SX1301_conf: additionalChannels}, newConfigs),
+        logger,
+        validator: () => {
+            return {
+                isValid: validateResult,
+                msg: [...addChnValidationResult.msg, ...frequencyValidationResult.descriptionOfNotValid]
+            }
+        }
+    });
 
-        const preparedConfigs = mergeDeep({SX1301_conf: additionalChannels}, newConfigs);
-
-        const resultConfigs = mergeDeep(previousConfigs, preparedConfigs);
-        const stringResultConfigs = JSON.stringify(resultConfigs, null, '\t');
-
-        fs.writeFileSync(filePath, stringResultConfigs);
-    }
-
-    return validateResult;
+    return result;
 }
 
 exports.writeConfig = writeConfig;

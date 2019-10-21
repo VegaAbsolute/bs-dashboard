@@ -46,24 +46,24 @@ button, button:hover, button:active, button:focus {
 	padding: 4px;
     background-color: white;
     color: #466df7;
-    border: 2px solid #02d0c0;
+    border: 2px solid #89a3ff;
     border-radius: 10px;
 }
 
 .button:hover {
     background-color: #e9f5ff;
-    border: 2px solid #02d0c0;
+    border: 2px solid #89a3ff;
     color: #466df7;
 }
 
 .button:focus {
-    border: 2px dashed #02d0c0;
+    border: 2px solid #89a3ff;
     background-color: white;
 }
 
 .button:active {
     background-color: #89a3ff;
-    border: 2px solid #02d0c0;
+    border: 2px solid #4b68f9;
     color: white;
 }
 

@@ -5,21 +5,24 @@ const dashboardAppSettingsValidator =  require('../../utils/validators/dashboard
 
 
 const writeDashboardSettings = (DASHBOARD_ROOT_DIR, data) => (logger) => {
-    logger.silly('writeDashboardSettings');
+    logger.debug('writeDashboardSettings');
     // fetch required fields by mask
     const mask = {
         loggerLevel: null,
         wireless3GConfigs: {
             isSupported: null
+        },
+        serverConfigs: {
+            isRebootLoraOnSaveConfigs: null
         }
     }
 
     const preparedData = parseObjectByMask(data, mask, false);
     logger.silly(preparedData);
     // Check data for valid
-    const isValid = dashboardAppSettingsValidator(preparedData, logger);
+    const validationResult = dashboardAppSettingsValidator(preparedData, logger);
 
-    if (isValid) {
+    if (validationResult.isValid) {
         // get current settings
         const settingsStringJson = fs.readFileSync(DASHBOARD_ROOT_DIR + '/dashboard/settings.json');
         const settings = JSON.parse(settingsStringJson);
@@ -32,7 +35,7 @@ const writeDashboardSettings = (DASHBOARD_ROOT_DIR, data) => (logger) => {
         fs.writeFileSync(DASHBOARD_ROOT_DIR + '/dashboard/settings.json', stringResultConfigs);
     }
 
-    return isValid;
+    return validationResult;
 }
 
 exports.writeDashboardSettings = writeDashboardSettings;

@@ -11,6 +11,11 @@ const createBackupFactorySettings = (SETTINGS, backupDir, logger, next) => {
             logger),
         checkForFileExist(
             backupDir,
+            SETTINGS.loraGlobalConfigs.filePath,
+            'local_conf.json',
+            logger),
+        checkForFileExist(
+            backupDir,
             SETTINGS.networkConfigs.fileDir,
             SETTINGS.networkConfigs.fileName,
             logger),
@@ -64,7 +69,9 @@ const createBackup = (destinationDir, filePath, fileName, logger) => (next) => {
         return next;
     } else {
         logger.error(`Source file not found! - ` + filePath + fileName);
-        return () => {}
+        return next;
+        // You can return empty function to forbid start the server when create backups has errors.
+        //return () => {}
     }
 }
 

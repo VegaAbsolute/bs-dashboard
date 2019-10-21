@@ -4,6 +4,7 @@ const aboutHandler = ({
     response,
     version,
     SETTINGS,
+    PROD_INFO,
     DASHBOARD_ROOT_DIR,
     managerVersion,
     lastVersionData,
@@ -15,7 +16,7 @@ const aboutHandler = ({
         case 'fetch_about_info': {
             logger.silly('handler case: fetch_about_info');
             const fetchInfo = require('./fetch-info.js').fetchInfo;
-            const result = fetchInfo({version, managerVersion, lastVersionData, SETTINGS, logger});
+            const result = fetchInfo({version, managerVersion, lastVersionData, SETTINGS, PROD_INFO, logger});
             response.json({ cmd, result: true, data: result });
             break;
         }

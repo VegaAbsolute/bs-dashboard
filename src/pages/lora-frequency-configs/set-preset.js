@@ -1,8 +1,9 @@
 const fs = require('fs');
 const mergeDeep =  require('../../utils/merge-deep.js').mergeDeep;
 const removeComentsFromLoraGlobalConf = require('../../utils/rm-cmnts-from-lora-globalconf.js').removeComentsFromLoraGlobalConf;
+const write = require('../../utils/lora-config-files-actions/write-config.js').writeConfig;
 
-const setFrequencyPreset = ({filePath, data, serverDirName, logger}) => {
+const setFrequencyPreset = ({SETTINGS, data, serverDirName, logger}) => {
     logger.silly('setFrequencyPreset');
     const { presetName } = data;
     return new Promise((resolve, reject) => {
@@ -21,16 +22,12 @@ const setFrequencyPreset = ({filePath, data, serverDirName, logger}) => {
                         SX1301_conf: JSON.parse(fs.readFileSync(serverDirName + `/LoRa-frequency-presets/presets/${presetFileName}`, 'utf8'))
                     };
 
-                    const configsText = fs.readFileSync(filePath, 'utf8');
-                    const clearedText = removeComentsFromLoraGlobalConf(configsText, '/*', '*/')
-                	const previousConfigs = JSON.parse(clearedText);
-
-                    const resultConfigs = mergeDeep(previousConfigs, presetConfigs);
-                    const stringResultConfigs = JSON.stringify(resultConfigs, null, '\t');
-
-                    //logger.silly(stringResultConfigs);
-
-                    fs.writeFileSync(filePath, stringResultConfigs);
+                    write({
+                        SETTINGS,
+                        data: presetConfigs,
+                        logger,
+                        validator: ()=>{return {isValid: true};}
+                    });
 
                     return resolve(true);
                 }

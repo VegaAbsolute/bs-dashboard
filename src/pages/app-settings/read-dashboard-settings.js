@@ -9,7 +9,10 @@ const readDasboardSettings = (DASHBOARD_ROOT_DIR) => (logger) => {
     const mask = {
         loggerLevel: '',
         wireless3GConfigs: {
-            isSupported: false
+            isSupported: 'false'
+        },
+        serverConfigs: {
+            isRebootLoraOnSaveConfigs: false
         }
     }
     const result = parseObjectByMask(settings, mask);

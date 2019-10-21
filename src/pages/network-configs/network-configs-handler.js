@@ -21,10 +21,12 @@ const networkConfigsHandler = ({cmd, SETTINGS, data, response, logger}) => {
         case 'set_network_conf': {
             logger.silly('handler case: set_network_conf');
             const writeConfig = require('./write-config.js').writeConfig;
-            if (writeConfig({SETTINGS, data, logger})) {
+            const writeResult = writeConfig({SETTINGS, data, logger});
+
+            if (writeResult.isValid) {
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: 'failure' });
+                response.json({ cmd, result: false, msg: 'data_is_not_valid', data: writeResult.msg });
             }
             break;
         }

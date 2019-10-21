@@ -63,6 +63,12 @@ class Session {
         }
         return result;
     }
+
+    isTokenExists(token) {
+        //check token life time
+        this.removeOldSessions();
+        return (this.session[token] !== undefined)
+    }
 }
 
 exports.Session = Session;

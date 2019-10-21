@@ -1,52 +1,64 @@
-    // TODO: remake validation for additional channels!
-const additionalChannelsValidator = (obj, logger) => {
-    const numberValidator = require('../validators.js').numberValidator;
-    let result = false;
-    for (let channelName in obj) {
-        for (let field in obj[channelName]) {
-            switch (field) {
-                case 'if':
-                case 'bandwidth':
-                case 'datarate':
-                case 'spread_factor': {
-                    if (!numberValidator(obj[channelName][field], -999999999, 999999999)) {
-                        logger.warn(`${channelName}.${field} = ${obj[channelName][field]} is not valid!`);
-                        return false;
-                    }
-                    result = true;
-                    break;
-                }
-                case 'radio': {
-                    if (obj[channelName][field] !== 0 && obj[channelName][field] !== 1) {
-                        logger.warn(`${channelName}.${field} = ${obj[channelName][field]} is not valid!`);
-                        return false;
-                    }
-                    result = true;
-                    break;
-                }
-                case 'enable': {
-                    if (typeof obj[channelName][field] !== 'boolean') {
-                        logger.warn(`${channelName}.${field} = ${obj[channelName][field]} is not valid!`);
-                        return false;
-                    }
-                    result = true;
-                    break;
-                }
-                default: {
-                    return false;
-                }
+const deepReduceObject = require('../objects-utils/deep-reduce-object.js').deepReduceObject;
+const numberValidator = require('../validators.js').numberValidator;
+
+/**
+ * Check for valid additional radiochannels:
+ */
+const oneParamValidator = (field, value) => {
+    switch (field) {
+        case 'if':
+        case 'bandwidth':
+        case 'datarate':
+        case 'spread_factor': {
+            if (numberValidator(value, -999999999, 999999999)) {
+                return true;
             }
+            return false;
+        }
+        case 'radio': {
+            if (value === 0 || value === 1) {
+                return true;
+            }
+            return false;
+        }
+        case 'enable': {
+            if (typeof value === 'boolean') {
+                return true;
+            }
+            return false;
+        }
+        default: {
+            return false;
         }
     }
-    logger.verbose('additionalChannelsValidator result = true')
+}
+
+
+const additionalChannelsValidator = (data, logger) => {
+    const result = deepReduceObject(data, {isValid: true, msg: []}, (objectKeyPath, keyName, keyValue, prevResult)=>{
+        const isValid = oneParamValidator(keyName, keyValue);
+
+        if (!isValid) {
+            logger.warn(`${objectKeyPath}.${keyName} is valid = ${isValid}`);
+        } else {
+            logger.verbose(`${objectKeyPath}.${keyName} is valid = ${isValid}`);
+        };
+
+        return {
+            isValid: prevResult.isValid ? isValid : false,
+            msg: isValid ? prevResult.msg : [...prevResult.msg, `[additional_radio_channels_validator]: [${objectKeyPath}.${keyName}]_is_not_valid`]
+        }
+    })
+
     return result;
 }
+
 
 
 /**
  * Check for valid main radiochannels:
  */
-const frequencyConfigsValidator = (obj, logger) => {
+const frequencyConfigsValidator = ({SX1301_conf: obj}, logger) => {
 
     let data = {};
 	let radios = {};
@@ -55,7 +67,6 @@ const frequencyConfigsValidator = (obj, logger) => {
 		switch (fieldType) {
 			case 'chan': {
 				data[key] = obj[key];
-
 				break;
 			}
 			case 'radi': {
@@ -68,26 +79,27 @@ const frequencyConfigsValidator = (obj, logger) => {
 		}
 	}
 
-    let descriptionOfNotValid = "";
+    let descriptionOfNotValid = [];
     let validationResult = true;
     let channels = [];
 
     for (let key in data) {
         if (data[key].enable) {
-
             /**
              *  Check elements to includes in the range of radio.
              */
             if (data[key].if < -400000 || data[key].if > 400000) {
-                descriptionOfNotValid += `${'radio_'+data[key].radio}: [${key}: (${data[key].if})] not included in the range\r\n`;
+                descriptionOfNotValid.push(`[main_radio_channels_validator]: ${'radio_'+data[key].radio}: [${key}: (${data[key].if})] not included in the range`);
                 validationResult = false;
             };
 
             /**
              *  Check radios frequency valid
              */
-            if (radios['radio_'+data[key].radio].freq < 863000000 || radios['radio_'+data[key].radio].freq > 870000000) {
-                descriptionOfNotValid += `Radio frequency = ${radios['radio_'+data[key].radio].freq} of the radio "${'radio_'+data[key].radio}" not included in the range (863000000 - 870000000)\r\n`;
+            //if (radios['radio_'+data[key].radio].freq < 863000000 || radios['radio_'+data[key].radio].freq > 870000000) {
+            if (radios['radio_'+data[key].radio].freq < 863000000 || radios['radio_'+data[key].radio].freq > 925000000) {
+                console.log('Check radios frequency valid');
+                descriptionOfNotValid.push(`[main_radio_channels_validator]: Radio frequency = ${radios['radio_'+data[key].radio].freq} of the radio "${'radio_'+data[key].radio}" not included in the range (863000000 - 925000000)`);
                 validationResult = false;
             };
 
@@ -112,16 +124,23 @@ const frequencyConfigsValidator = (obj, logger) => {
             const diff = current.if - prev.if;
             if ((diff) < 200000) {
                 validationResult = false;
-                descriptionOfNotValid += `[${prev.channelName}: ${prev.if}]<--${diff}-->[${current.channelName}: ${current.if}] interval smaller than 200000\r\n`
+                descriptionOfNotValid.push(`[main_radio_channels_validator]: [${prev.channelName}: ${prev.if}]<--${diff}-->[${current.channelName}: ${current.if}] interval smaller than 200000`);
             } else {
             }
             return current;
         })
     }
-    logger.warn(descriptionOfNotValid.substr(0, descriptionOfNotValid.length - 2));
+
+    if (validationResult) {
+        logger.verbose(`[main_radio_channels_validator]: is valid = true`);
+    } else {
+        logger.warn(`[main_radio_channels_validator]: is valid = false`);
+        logger.debug(descriptionOfNotValid);
+    }
+
     return {
         isDataValid: validationResult,
-        descriptionOfNotValid: descriptionOfNotValid.substr(0, descriptionOfNotValid.length - 2)
+        descriptionOfNotValid
     };
 }
 

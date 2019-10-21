@@ -1,14 +1,9 @@
-const fs = require('fs');
-const removeComentsFromLoraGlobalConf = require('../../utils/rm-cmnts-from-lora-globalconf.js').removeComentsFromLoraGlobalConf;
-const parseObjectByMask = require('../../utils/parse-object-by-mask.js').parseObjectByMask;
+const read = require('../../utils/lora-config-files-actions/read-config.js').readConfig;
 
-const readConfig = ({filePath, logger}) => {
+const readConfig = ({SETTINGS, logger}) => {
 	logger.silly('readConfig');
-	const configsText = fs.readFileSync(filePath, 'utf8');
-    const clearedText = removeComentsFromLoraGlobalConf(configsText, '/*', '*/')
-	const configsObject = JSON.parse(clearedText);
 
-    const configsMask = {
+    const dataMask = {
         SX1301_conf: {
             radio_0: {
                 freq: null
@@ -73,7 +68,7 @@ const readConfig = ({filePath, logger}) => {
         }
     }
 
-    const sendConfigs = parseObjectByMask(configsObject, configsMask);
+    const sendConfigs = read({SETTINGS, dataMask, logger});
 	logger.silly(sendConfigs);
 	return sendConfigs;
 }

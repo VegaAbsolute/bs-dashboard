@@ -1,6 +1,6 @@
 {
   "name": "BS_dashboard",
-  "version": "s-0.4.4/c-0.4.4",
+  "version": "s-0.6.3/c-0.6.5",
   "private": true,
   "scripts": {
     "start": "node ./app.js"

@@ -7,7 +7,7 @@ const $3gConfigsHandler = ({
 }) => {
     logger.debug('$3gConfigsHandler');
     logger.silly(data);
-    
+
     const { fileDir, fileName, interfaceManagerFileDir, interfaceManagerFileName } = SETTINGS.wireless3GConfigs;
     const filePath = fileDir + fileName;
     const interfaceManagerFilePath = interfaceManagerFileDir + interfaceManagerFileName;
@@ -30,10 +30,12 @@ const $3gConfigsHandler = ({
         case 'set_3g_conf': {
             logger.debug('handler case: set_3g_conf');
             const writeConfig = require('./write-config.js').writeConfig;
-            if (writeConfig({filePath, interfaceManagerFilePath, data, logger})) {
+            const writeResult = writeConfig({filePath, interfaceManagerFilePath, data, logger});
+
+            if (writeResult.isValid) {
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: 'failure' });
+                response.json({ cmd, result: false, msg: 'data_is_not_valid', data: writeResult.msg });
             }
             break;
         }

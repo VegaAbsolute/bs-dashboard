@@ -22,33 +22,11 @@ const writeConfig = ({SETTINGS, data: configs, logger}) => {
     const newConfigs = parseObjectByMask(configs, newConfigsMask, false);
     const dnsConfigs = parseObjectByMask(configs, dnsConfigsMask, false);
 
-// TODO: remove code after testing
-    /*const {
-            eth0 = '',
-            address = "",
-            netmask = "",
-            gateway = "",
-            domain = '',
-            nameserver0 = '',
-            nameserver1 = ''
-        } = configs;
-    const newConfigs = {
-        eth0,
-        address,
-        netmask,
-        gateway
-    };
-    const dnsConfigs = {
-        domain,
-        nameserver0: nameserver0,
-        nameserver1
-    };*/
-
     logger.silly(newConfigs);
     const isMainValid = networkConfValidator({data: newConfigs, logger});
     logger.silly(dnsConfigs);
     const isDnsValid = networkConfValidator({data: dnsConfigs, logger});
-    const isValid = (isMainValid && isDnsValid);
+    const isValid = (isMainValid.isValid && isDnsValid.isValid);
 
     logger.info('Is valid new configs for write to "interfaces" = ' + (isValid));
     // merge configs and write to file
@@ -124,7 +102,7 @@ const writeConfig = ({SETTINGS, data: configs, logger}) => {
         fs.writeFileSync(dnsFileAddress, dnsConfString);
     }
 
-    return isValid;
+    return {isValid: isValid, msg: [...isMainValid.msg, ...isDnsValid.msg]};
 }
 
 exports.writeConfig = writeConfig;

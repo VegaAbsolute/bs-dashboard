@@ -47,7 +47,7 @@ const writeConfig = ({filePath, interfaceManagerFilePath, data: dataObj, logger}
     logger.silly(pingConfigs);
     const isPingConfigsValid = $3GConfigsValidator(pingConfigs, logger);
 
-    const isValid = (isMainConfigsValid && isPingConfigsValid);
+    const isValid = (isMainConfigsValid.isValid && isPingConfigsValid.isValid);
     logger.info('Is valid new configs for write to "wvdial.conf" = ' + isValid);
 
     if (isValid) {
@@ -151,7 +151,7 @@ const writeConfig = ({filePath, interfaceManagerFilePath, data: dataObj, logger}
         fs.writeFileSync(interfaceManagerFilePath, interfaceManagerResult);
     }
 
-    return isValid;
+    return {isValid: isValid, msg: [...isMainConfigsValid.msg, ...isPingConfigsValid.msg]};
 }
 
 exports.writeConfig = writeConfig;

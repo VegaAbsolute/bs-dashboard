@@ -3,6 +3,7 @@ const winston = require('winston');
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, label, printf } = format;
 
+
 const fileFormat = printf(({ level, message, label, timestamp }) => {
     let mes = message;
     if (typeof message === 'object') {
@@ -14,6 +15,8 @@ const fileFormat = printf(({ level, message, label, timestamp }) => {
     }
     return `${timestamp} [${level.toUpperCase()}]: ${mes}\r`;
 });
+
+
 const consoleFormat = printf(({ level, message, label }) => {
     let mes = message;
     if (typeof message === 'object') {
@@ -25,6 +28,7 @@ const consoleFormat = printf(({ level, message, label }) => {
     }
     return `[${label}] [${level.toUpperCase()}]: ${mes}\r`;
 });
+
 
 const logger = (mainDir, level='', maxLevelForConsoleLogger='verbose') => {
     let consoleLevel = 'verbose';
@@ -60,6 +64,7 @@ const logger = (mainDir, level='', maxLevelForConsoleLogger='verbose') => {
             fileLevel = 'warn';
         }
     }
+
     return winston.createLogger({
         transports: [
             new winston.transports.Console({

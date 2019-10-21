@@ -13,7 +13,15 @@ const authorizationHandler = ({
         case 'login_request': {
             logger.silly('handler case: login_request');
             const userAuthentication = require('./user-authentication.js').userAuthentication;
-            const result = Object.assign({}, userAuthentication({Session, data, requestOrigin, logger, DASHBOARD_ROOT_DIR}), additionalDataResponse)
+            const userAuthenticationResult = userAuthentication({Session, data, requestOrigin, logger, DASHBOARD_ROOT_DIR});
+            let result;
+
+            if (userAuthenticationResult.result === true) {
+                result = Object.assign({}, userAuthenticationResult, additionalDataResponse)
+            } else {
+                result = Object.assign({}, userAuthenticationResult)
+            }
+
             response.json(result);
             break;
         }

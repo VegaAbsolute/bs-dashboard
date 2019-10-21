@@ -5,7 +5,6 @@ router.post('/', (request, response, next) => {
     const { Session, logger, SETTINGS, dirName } = request.appParams;
 
     try {
-        const { filePath, fileName, defaultFilePath } = SETTINGS.loraGlobalConfigs;
         const { cmd='', data={}, loginToken='' } = request.body;
 
         const access = Session.checkToken(loginToken, request.headers.origin);
@@ -15,7 +14,7 @@ router.post('/', (request, response, next) => {
 
         if (access) {
             const loraFrequencyConfigsHandler = require('../src/pages/lora-frequency-configs/lora-frequency-configs-handler.js').loraFrequencyConfigsHandler;
-            loraFrequencyConfigsHandler({cmd, filePath: filePath + fileName, defaultFilePath, data, response, dirName, logger});
+            loraFrequencyConfigsHandler({cmd, data, response, dirName, logger, SETTINGS});
         } else {
             response.json({ cmd, result: false, msg: 'login_not_performed' });
         }

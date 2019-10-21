@@ -7,7 +7,7 @@ const restoreSettingsAction = (destinationDir, filePath, fileName, logger) => (n
         logger.verbose(`Backup for file "${fileName}" is exists.`);
         return copyFile(destinationDir, filePath, fileName, logger)(next);
     } else {
-        logger.verbose(`Backup for file "${fileName}" not found.`);
+        logger.warn(`Backup for file "${fileName}" not found.`);
         return next;
     }
 }

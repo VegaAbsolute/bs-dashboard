@@ -2,8 +2,7 @@ const portValidator = require('../validators').portValidator;
 const ipValidator = require('../validators').ipValidator;
 const domainAdressValidator = require('../validators').domainAdressValidator;
 
-const deepMap = require('../objects-utils/deep-map-object.js').deepMap;
-const checkBoolObjectForFalse = require('../objects-utils/check-bool-object-for-false.js').checkBoolObjectForFalse;
+const deepReduceObject = require('../objects-utils/deep-reduce-object.js').deepReduceObject;
 
 const oneParamValidator = (field, value) => {
     let isValid;
@@ -33,34 +32,22 @@ const oneParamValidator = (field, value) => {
 }
 
 const globalConfValidator = ({data, logger}) => {
-    // TODO: remove code after testing
-    /*let result = false;
-    const deepObj = (object) => {
-        for(var prop in object) {
-            if (typeof object[prop] === 'object') {
-                deepObj(object[prop]);
-            } else {
-                result = oneParamValidator(prop, object[prop]);
-                if (!result) {
-                    logger.warn(prop + ': [' + object[prop] + '] is valid = ' + result);
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-    return deepObj(data);*/
+    const result = deepReduceObject(data, {isValid: true, msg: []}, (objectKeyPath, keyName, keyValue, prevResult)=>{
+        const isValid = oneParamValidator(keyName, keyValue);
 
-    return checkBoolObjectForFalse(deepMap(data, (field, value, path) => {
-        logger.debug(`${path} = [ ${value} ]`);
-        const result = oneParamValidator(field, value);
-        if (!result) {
-            logger.warn(`${path} is valid = ${result}`);
+        if (!isValid) {
+            logger.warn(`${objectKeyPath}.${keyName} is valid = ${isValid}`);
         } else {
-            logger.verbose(`${path} is valid = ${result}`);
+            logger.verbose(`${objectKeyPath}.${keyName} is valid = ${isValid}`);
         };
-        return result;
-    }));
+
+        return {
+            isValid: prevResult.isValid ? isValid : false,
+            msg: isValid ? prevResult.msg : [...prevResult.msg, `[${objectKeyPath}.${keyName}]_is_not_valid`]
+        }
+    })
+
+    return result;
 }
 
 exports.globalConfValidator = globalConfValidator;

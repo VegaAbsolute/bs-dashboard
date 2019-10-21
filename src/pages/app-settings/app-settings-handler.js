@@ -21,16 +21,20 @@ const appSettingsHandler = ({
             break;
         }
 
+
         case 'set_manager_settings': {
             logger.silly('handler case: set_manager_settings');
             const writeManagerSettings = require('./write-manager-settings.js').writeManagerSettings;
-            if (writeManagerSettings(DASHBOARD_ROOT_DIR, data)(logger)) {
+            const writeResult = writeManagerSettings(DASHBOARD_ROOT_DIR, data)(logger);
+
+            if (writeResult.isValid) {
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: 'failure' });
+                response.json({ cmd, result: false, msg: 'data_is_not_valid', data: writeResult.msg });
             }
             break;
         }
+
 
         /**
          * Dashboard settings
@@ -43,16 +47,20 @@ const appSettingsHandler = ({
             break;
         }
 
+
         case 'set_dashboard_settings': {
             logger.silly('handler case: set_dashboard_settings');
             const writeDashboardSettings = require('./write-dashboard-settings.js').writeDashboardSettings;
-            if (writeDashboardSettings(DASHBOARD_ROOT_DIR, data)(logger)) {
+            const writeResult = writeDashboardSettings(DASHBOARD_ROOT_DIR, data)(logger);
+
+            if (writeResult.isValid) {
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: 'failure' });
+                response.json({ cmd, result: false, msg: 'data_is_not_valid', data: writeResult.msg });
             }
             break;
         }
+
 
         /**
          * Password setttings
@@ -61,10 +69,11 @@ const appSettingsHandler = ({
             logger.silly('handler case: set_password_settings');
             const writePasswordSettings = require('./write-password-settings.js').writePasswordSettings;
             const result = writePasswordSettings(DASHBOARD_ROOT_DIR, data)(logger);
+
             if (result.result) {
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: result.message });
+                response.json({ cmd, result: false, msg: 'failure', data: result.message });
             }
             break;
         }

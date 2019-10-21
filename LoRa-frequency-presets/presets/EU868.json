@@ -44,5 +44,11 @@
 	},
 	"radio_1": {
 		"freq": 868300000
-	}
+	},
+    "chan_Lora_std": {
+        "enable": false
+    },
+    "chan_FSK": {
+        "enable": false
+    }
 }

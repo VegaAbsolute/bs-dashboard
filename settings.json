@@ -3,7 +3,8 @@
 		"description": "",
 		"frontAppPort": 80,
 		"serverPort": 3001,
-		"language": "ru"
+		"language": "en",
+		"isRebootLoraOnSaveConfigs": true
 	},
 	"loraGlobalConfigs": {
 		"description": "",

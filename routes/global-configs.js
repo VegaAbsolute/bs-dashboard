@@ -5,7 +5,7 @@ router.post('/', (request, response, next) => {
     const { Session, logger, SETTINGS } = request.appParams;
 
     try {
-        const { filePath, fileName, defaultFilePath } = SETTINGS.loraGlobalConfigs;
+        const { filePath, fileName } = SETTINGS.loraGlobalConfigs;
         const { cmd='', data={}, loginToken='' } = request.body;
 
         const access = Session.checkToken(loginToken, request.headers.origin);
@@ -15,7 +15,7 @@ router.post('/', (request, response, next) => {
 
         if (access) {
             const loraGlobalConfigsHandler = require('../src/pages/lora-global-configs/lora-global-configs-handler.js').loraGlobalConfigsHandler;
-            loraGlobalConfigsHandler({cmd, filePath: filePath + fileName, defaultFilePath, data, response, logger});
+            loraGlobalConfigsHandler({cmd, filePath: filePath + fileName, data, response, logger, SETTINGS});
         } else {
             logger.info('login_not_performed');
             response.json({ cmd, result: false, msg: 'login_not_performed' });

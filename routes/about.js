@@ -1,45 +1,48 @@
 var express = require('express');
 var router = express.Router();
 
-router.post('/', (request, response, next) => {
-    const {
-        Session,
-        logger,
-        SETTINGS,
-        DASHBOARD_ROOT_DIR,
-        SERVER_PACKAGE,
-        lastVersionData,
-        managerVersion
-    } = request.appParams;
+const loraLogs = (appParams, getLastVersionData) => {
+    return router.post('/', (request, response, next) => {
+        const {
+            Session,
+            logger,
+            SETTINGS,
+            PROD_INFO,
+            DASHBOARD_ROOT_DIR,
+            SERVER_PACKAGE
+        } = appParams;
 
-    try {
-        const { cmd='', data={}, loginToken='' } = request.body;
-        const access = Session.checkToken(loginToken, request.headers.origin);
+        const {lastVersionData, managerVersion} = getLastVersionData();
+        try {
+            const { cmd='', data={}, loginToken='' } = request.body;
+            const access = Session.checkToken(loginToken, request.headers.origin);
 
-        logger.info(`POST/ABOUT: cmd = ${cmd}`, 0, true);
-        logger.info(`Access = ${access}`, 1);
+            logger.info(`POST/ABOUT: cmd = ${cmd}`, 0, true);
+            logger.info(`Access = ${access}`, 1);
 
-        if (access) {
-            const aboutHandler = require('../src/pages/about/about-handler.js').aboutHandler;
-            aboutHandler({
-                cmd,
-                data,
-                response,
-                SETTINGS,
-                DASHBOARD_ROOT_DIR,
-                version: SERVER_PACKAGE.version,
-                managerVersion,
-                lastVersionData,
-                logger
-            });
-        } else {
-            response.json({ cmd, result: false, msg: 'login_not_performed' });
+            if (access) {
+                const aboutHandler = require('../src/pages/about/about-handler.js').aboutHandler;
+                aboutHandler({
+                    cmd,
+                    data,
+                    response,
+                    SETTINGS,
+                    PROD_INFO,
+                    DASHBOARD_ROOT_DIR,
+                    version: SERVER_PACKAGE.version,
+                    managerVersion,
+                    lastVersionData,
+                    logger
+                });
+            } else {
+                response.json({ cmd, result: false, msg: 'login_not_performed' });
+            }
+
+        } catch (err) {
+            logger.error(err.name + "\n\r" + err.message + "\n\r" + err.stack);
+            response.json({ cmd: 'SERVER_ERROR', result: false, msg: 'SERVER ERROR: [' + err.name + '] -' + err.message});
         }
+    });
+};
 
-    } catch (err) {
-        logger.error(err.name + "\n\r" + err.message + "\n\r" + err.stack);
-        response.json({ cmd: 'SERVER_ERROR', result: false, msg: 'SERVER ERROR: [' + err.name + '] -' + err.message});
-    }
-});
-
-module.exports = router;
+module.exports = loraLogs;

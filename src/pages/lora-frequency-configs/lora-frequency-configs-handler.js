@@ -1,11 +1,10 @@
 const loraFrequencyConfigsHandler = ({
     cmd,
-    filePath,
-    defaultFilePath,
     data,
     response,
     dirName: serverDirName,
-    logger
+    logger,
+    SETTINGS
 }) => {
     logger.debug('loraFrequencyConfigsHandler');
     logger.silly(data);
@@ -14,8 +13,9 @@ const loraFrequencyConfigsHandler = ({
 
         case 'get_freq_conf': {
             logger.silly('handler case: get_freq_conf');
+
             const readConfig = require('./read-configs.js').readConfig;
-            const configs = readConfig({filePath, logger});
+            const configs = readConfig({SETTINGS, logger});
             const result = {
                 cmd,
                 result: true,
@@ -26,16 +26,29 @@ const loraFrequencyConfigsHandler = ({
             break;
         }
 
+
         case 'set_freq_conf': {
             logger.silly('handler case: set_freq_conf');
             const writeConfig = require('./write-config.js').writeConfig;
-            if (writeConfig({filePath, data, logger})) {
+            const writeResult = writeConfig({SETTINGS, data, logger});
+
+            if (writeResult.isValid) {
+
+                // Reboot LoRa
+                if (SETTINGS.serverConfigs.isRebootLoraOnSaveConfigs) {
+                    const exec = require('child_process').exec;
+                    exec('killall lora_pkt_fwd', () => {
+                        logger.info('Reboot LoRa.');
+                    });
+                }
+
                 response.json({ cmd, result: true, msg: 'success' });
             } else {
-                response.json({ cmd, result: false, msg: 'failure' });
+                response.json({ cmd, result: false, msg: 'data_is_not_valid', data: writeResult.msg });
             }
             break;
         }
+
 
         case 'get_freq_preset_list': {
             logger.silly('handler case: get_freq_preset_list');
@@ -51,6 +64,7 @@ const loraFrequencyConfigsHandler = ({
             break;
         }
 
+
         // TODO: create preset sending
         case 'get_freq_preset': {
             logger.silly('handler case: get_freq_preset');
@@ -61,22 +75,34 @@ const loraFrequencyConfigsHandler = ({
                         cmd,
                         result: true,
                         msg: 'success',
-                        data: configs.result
+                        data: configs.data
                     }
                     response.json(result);
                 } else {
-                    response.json({ cmd, result: false, msg: configs.result });
+                    response.json({ cmd, result: false, msg: configs.msg });
+                    // TODO: add transmit data in following API version
+                    //response.json({ cmd, result: false, msg: configs.msg, data: configs.data });
                 }
             })
             break;
         }
 
+
         case 'set_freq_preset': {
             logger.silly('handler case: set_freq_preset');
             const setFrequencyPreset = require('./set-preset.js').setFrequencyPreset;
             //setFrequencyPreset(filePath);
-            setFrequencyPreset({filePath, data, serverDirName, logger}).then((res)=>{
+            setFrequencyPreset({SETTINGS, data, serverDirName, logger}).then((res)=>{
                 if (res) {
+
+                    // Reboot LoRa
+                    if (SETTINGS.serverConfigs.isRebootLoraOnSaveConfigs) {
+                        const exec = require('child_process').exec;
+                        exec('killall lora_pkt_fwd', () => {
+                            logger.info('Reboot LoRa.');
+                        });
+                    }
+
                     response.json({ cmd, result: true, msg: 'success' });
                 } else {
                     response.json({ cmd, result: false, msg: 'failure' });
@@ -84,6 +110,7 @@ const loraFrequencyConfigsHandler = ({
             })
             break;
         }
+
 
         default: {
             logger.silly('handler case: default');
