@@ -8,7 +8,7 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const initLogger = require('./src/utils/logger.js').logger(__dirname);
-const createBackupFactorySettings = require('./src/pages/device-actions/create-backup-factory-settings.js').createBackupFactorySettings;
+const createBackupFactorySettings = require('./src/handlers/device-actions/create-backup-factory-settings.js').createBackupFactorySettings;
 
 
 
@@ -46,13 +46,15 @@ lastVersionData:{
 initLogger.warn('Run BS-Dashboard.');
 
 try {
-    const Session = new (require('./src/pages/authorization/session.js').Session);
+    const Session = new (require('./src/handlers/authorization/session.js').Session);
     const readSettings = require('./src/read-settings.js').readSettings;
-    readSettings(__dirname, initLogger, (err, settings) => {
+    
+    readSettings(__dirname, initLogger, (err, settings, prodInfo) => {
         if (err) {
             initLogger.error(err);
             process.exit(-1);
         } else {
+            const PROD_INFO = prodInfo;
             const SETTINGS = settings;
 
 
@@ -62,122 +64,103 @@ try {
 
             const logger = require('./src/utils/logger.js').logger(__dirname, SETTINGS.loggerLevel, SETTINGS.maxLevelForConsoleLogger);
 
-            createBackupFactorySettings(SETTINGS, DASHBOARD_ROOT_DIR + '/backup', logger, () => {
-                const readProdInfoFile = require('./src/read-prod-info-file.js').readProdInfoFile;
-
-                
-                /**
-                 * Read PROD_INFO file
-                 */
-                const PROD_INFO = readProdInfoFile('/home/root/PROD_INFO');
-
+            createBackupFactorySettings(SETTINGS,PROD_INFO, DASHBOARD_ROOT_DIR + '/backup', logger, () => {
 
                 logger.silly(PROD_INFO);
 
                 const ISSUPPORT3G = (SETTINGS.wireless3GConfigs.isSupported === 'auto') ? (
                     PROD_INFO.GSM !== null
                 ) : (
-                    SETTINGS.wireless3GConfigs.isSupported === 'true'
-                )
+                        SETTINGS.wireless3GConfigs.isSupported === 'true'
+                    );
 
-                /**
-                 * Check via "interface_manager" file that this device is supporting 3G.
-                 */
-                /*const ISSUPPORT3G = require('./src/pages/3g-configs/checking-3g-support.js')
-                    .checking3GSupport(
-                        SETTINGS.wireless3GConfigs.isSupported,
-                        SETTINGS.wireless3GConfigs.interfaceManagerFileDir + SETTINGS.wireless3GConfigs.interfaceManagerFileName,
-                        logger
-                    );*/
+                
 
                 logger.verbose('3G is supported = ' + ISSUPPORT3G);
 
-                let res;
-                let req;
                 /**
                  *  Fetch update info
                  *
                  */
                 process.on('message', (message) => {
                     logger.silly(message);
-                     switch (message.cmd) {
-                         case 'initial_data': {
-                             dashboardState.update.managerVersion = message.data.managerVersion;
-                             break;
-                         }
+                    switch (message.cmd) {
+                        case 'initial_data': {
+                            dashboardState.update.managerVersion = message.data.managerVersion;
+                            break;
+                        }
 
 
-                         case 'update_is_available': {
-                             // TODO: disable checking updates in manager when application is installing updates
-                             if (dashboardState.update.updateState !== 'IN_PROCESS') {
-                                 dashboardState.update = Object.assign(dashboardState.update, {
-                                     lastVersionData: message.data,
-                                     updateState: 'AVAILABLE'
-                                 })
-                             } else {
-                                 dashboardState.update.lastVersionData = message.data;
-                             }
-                             break;
-                         }
+                        case 'update_is_available': {
+                            // TODO: disable checking updates in manager when application is installing updates
+                            if (dashboardState.update.updateState !== 'IN_PROCESS') {
+                                dashboardState.update = Object.assign(dashboardState.update, {
+                                    lastVersionData: message.data,
+                                    updateState: 'AVAILABLE'
+                                })
+                            } else {
+                                dashboardState.update.lastVersionData = message.data;
+                            }
+                            break;
+                        }
 
 
-                         case 'update_started': {
-                             dashboardState.update = Object.assign(dashboardState.update, {
-                                 updateState: 'IN_PROCESS',
-                                 stageDescription: []
-                             });
+                        case 'update_started': {
+                            dashboardState.update = Object.assign(dashboardState.update, {
+                                updateState: 'IN_PROCESS',
+                                stageDescription: []
+                            });
 
-                             logger.info('update_started');
-                             res.json({ cmd: req.body.cmd, result: true, msg: 'update_started' });
-                             break;
-                         }
-
-
-                         case 'update_process_new_stage': {
-                             dashboardState.update = Object.assign(dashboardState.update, {
-                                 updateState: 'IN_PROCESS',
-                                 stageDescription: [
-                                     ...dashboardState.update.stageDescription,
-                                     message.stage
-                                 ]
-                             })
-                             break;
-                         }
+                            logger.info('update_started');
+                            break;
+                        }
 
 
-                         case 'update_failure': {
-                             dashboardState.update = Object.assign(dashboardState.update, {
-                                 updateState: 'FAILURE',
-                                 stageDescription: [
-                                     ...dashboardState.update.stageDescription,
-                                     message.error
-                                 ]
-                             });
-                             logger.warn('update failure');
-                             logger.silly(dashboardState.update);
-                             break;
-                         }
+                        case 'update_process_new_stage': {
+                            dashboardState.update = Object.assign(dashboardState.update, {
+                                updateState: 'IN_PROCESS',
+                                stageDescription: [
+                                    ...dashboardState.update.stageDescription,
+                                    message.stage
+                                ]
+                            })
+                            break;
+                        }
 
 
-                         case 'update_completed': {
-                             dashboardState.update = Object.assign(dashboardState.update, {
-                                 updateState: 'INSTALLED'
-                             });
-                             logger.info('update completed');
-                             logger.silly(dashboardState.update);
-                             setTimeout(()=>{
-                                 process.exit(40);
-                             }, 10000);
+                        case 'update_failure': {
+                            dashboardState.update = Object.assign(dashboardState.update, {
+                                updateState: 'FAILURE',
+                                stageDescription: [
+                                    ...dashboardState.update.stageDescription,
+                                    message.error
+                                ]
+                            });
+                            logger.warn('update failure');
+                            logger.silly(dashboardState.update);
+                            break;
+                        }
 
-                             break;
-                         }
+
+                        case 'update_completed': {
+                            dashboardState.update = Object.assign(dashboardState.update, {
+                                updateState: 'INSTALLED'
+                            });
+                            logger.info('update completed');
+                            logger.silly(dashboardState.update);
+                            setTimeout(() => {
+                                process.exit(40);
+                            }, 10000);
+
+                            break;
+                        }
 
 
-                         default: {
-                             logger.info('BS-dashboard got message:', message);
-                         }
-                     }
-                 });
+                        default: {
+                            logger.info('BS-dashboard got message:', message);
+                        }
+                    }
+                });
 
                 process.on('disconnect', () => {
                     logger.error('Parent process was exited');
@@ -246,13 +229,13 @@ try {
                     logger.info(`Dashboard - Client app is available on port ${staticSiteOptions.portnum}.`);
                 });
 
-                const LoraLogger = new (require('./src/pages/lora-logs/lora-logger.js').LoraLogger)({logger, Session});
-                LoraLogger.listen({host: '127.0.0.1', port: 3003});
+                const LoraLogger = new (require('./src/handlers/lora-logs/lora-logger.js').LoraLogger)({ logger, Session });
+                LoraLogger.listen({ host: '127.0.0.1', port: 3003 });
 
-                 /*
-                 *server API
-                 *
-                 */
+                /*
+                *server API
+                *
+                */
                 const serverApp = express();
                 serverApp.use(cors())
                 serverApp.use(bodyParser.json());
@@ -261,52 +244,194 @@ try {
                     PROD_INFO,
                     dirName: __dirname,
                     ISSUPPORT3G,
-                    Session,
                     SETTINGS,
                     SERVER_PACKAGE,
 
+                    Session,
                     logger
                 }
 
-                const initial = require('./routes/initial');
-                const getStateRoute = require('./routes/get-state');
-                const loraLogs = require('./routes/lora-logs');
-                const loraOtherConfigs = require('./routes/lora-other-configs');
-                const authorizationGet = require('./routes/authorization-get');
-                const authorizationPost = require('./routes/authorization-post');
-                const globalConfigs = require('./routes/global-configs');
-                const frequencyConfigs = require('./routes/frequency-configs');
-                const networkConfigs = require('./routes/network-configs');
-                const $3g = require('./routes/3g');
-                const loraGpsConfigs = require('./routes/lora-gps');
-                const about = require('./routes/about');
-                const appSettings = require('./routes/app-settings');
-                const deviceActions = require('./routes/device-actions');
-
-                serverApp.use((request, response, next) => {
+                /*serverApp.use((request, response, next) => {
 
                     res = response;
                     req = request;
 
                     request.appParams = appParams;
                     next();
-                });
+                });*/
 
+                serverApp.post('/3g', (request, response) => {
+                    const handler = require('./src/handlers/3g-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
 
-                serverApp.use('/initial', initial);
-                serverApp.use('/get-state', getStateRoute({logger, Session, getState: ()=>dashboardState}));
-                serverApp.use('/authorization', authorizationGet);
-                serverApp.use('/authorization', authorizationPost);
-                serverApp.use('/global-configs', globalConfigs);
-                serverApp.use('/frequency-configs', frequencyConfigs);
-                serverApp.use('/lora-logs', loraLogs({logger, LoraLogger, Session}));
-                serverApp.use('/lora-other-configs', loraOtherConfigs(appParams));
-                serverApp.use('/lora-gps-configs', loraGpsConfigs(appParams));
-                serverApp.use('/network-configs', networkConfigs);
-                serverApp.use('/3g', $3g);
-                serverApp.use('/about', about(appParams, ()=>{return {lastVersionData: dashboardState.update.lastVersionData, managerVersion: dashboardState.update.managerVersion}}));
-                serverApp.use('/app-settings', appSettings);
-                serverApp.use('/device-actions', deviceActions({logger, Session, getState: ()=>dashboardState}));
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/about', (request, response) => {
+                    const handler = require('./src/handlers/about/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        getLastVersionData: () => { return { lastVersionData: dashboardState.update.lastVersionData, managerVersion: dashboardState.update.managerVersion } },
+                        appParams
+                    })
+                })
+                serverApp.post('/app-settings', (request, response) => {
+                    const handler = require('./src/handlers/app-settings/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/authorization', (request, response) => {
+                    const handler = require('./src/handlers/authorization/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/device-actions', (request, response) => {
+                    const handler = require('./src/handlers/device-actions/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/get-state', (request, response) => {
+                    const handler = require('./src/handlers/get-state/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/initial', (request, response) => {
+                    const handler = require('./src/handlers/initial/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/frequency-configs', (request, response) => {
+                    const handler = require('./src/handlers/lora-frequency-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/global-configs', (request, response) => {
+                    const handler = require('./src/handlers/lora-global-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/lora-gps-configs', (request, response) => {
+                    const handler = require('./src/handlers/lora-gps-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/lora-logs', (request, response) => {
+                    const handler = require('./src/handlers/lora-logs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+                        LoraLogger,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/lora-other-configs', (request, response) => {
+                    const handler = require('./src/handlers/lora-other-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+                serverApp.post('/network-configs', (request, response) => {
+                    const handler = require('./src/handlers/network-configs/handler').handler;
+                    handler({
+                        request,
+                        response,
+
+                        logger,
+                        Session,
+
+                        getState: () => dashboardState,
+                        appParams
+                    })
+                })
+
 
                 serverApp.get('/ping', (req, res) => {
                     res.json({ result: true });

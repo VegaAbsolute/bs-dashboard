@@ -1,6 +1,6 @@
 const ipValidator = require('../validators').ipValidator;
 const netMaskValidator = require('../validators').netMaskValidator;
-const domainAdressValidator = require('../validators').domainAdressValidator;
+const stringValidator = require('../validators').stringValidator;
 
 const deepReduceObject = require('../objects-utils/deep-reduce-object.js').deepReduceObject;
 
@@ -8,10 +8,13 @@ const oneParamValidator = (field, value) => {
     let isValid;
     switch (field) {
         case 'address':
-        case 'gateway':
+        case 'gateway':{
+            isValid = ipValidator(value);
+            break;
+        }
         case 'nameserver0':
         case 'nameserver1': {
-            isValid = ipValidator(value);
+            isValid = (value === '' || !value) ? true : ipValidator(value);
             break;
         }
         case 'eth0': {
@@ -23,7 +26,7 @@ const oneParamValidator = (field, value) => {
             break;
         }
         case 'domain': {
-            isValid = domainAdressValidator(value);
+            isValid = (!value) ? true : stringValidator(value, 0, 50);
             break;
         }
         default: {

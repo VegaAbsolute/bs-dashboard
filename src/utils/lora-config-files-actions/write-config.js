@@ -25,6 +25,12 @@ const writeConfig = ({SETTINGS, data, dataMask=null, logger, validator}) => {
 
     // Validate new configs
     const validationResult = validator({data: newConfigs, logger});
+    /*
+    {
+        isValid: validateResult,
+        msg: [...addChnValidationResult.msg, ...frequencyValidationResult.descriptionOfNotValid]
+    }
+    */
     logger.info('Is valid new configs for write to "global_conf.json" = ' + validationResult.isValid);
 
     // merge configs and write to file

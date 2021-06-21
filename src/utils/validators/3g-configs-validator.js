@@ -1,4 +1,4 @@
-const domainAdressValidator = require('../validators').domainAdressValidator;
+const stringValidator = require('../validators').stringValidator;
 const providerPhoneValidator = require('../validators').providerPhoneValidator;
 const namePassValidator = require('../validators').namePassValidator;
 const ipValidator = require('../validators').ipValidator;
@@ -8,7 +8,7 @@ const deepReduceObject = require('../objects-utils/deep-reduce-object.js').deepR
 const oneParamValidator = (field, value) => {
     switch (field) {
         case 'Init2': {
-            return domainAdressValidator(value);
+            return stringValidator(value, 1, 64);
         }
         case 'Phone': {
             return providerPhoneValidator(value);

@@ -61,12 +61,12 @@ const ipWithPortValidator = (text) => {
 const netMaskValidator = (str) => {
 
     const binar = (number) => {
-    	let binarString = number.toString(2)
+        let binarString = number.toString(2)
         const length = binarString.length;
-    	for (var i = 0; i < 8 - length; i += 1) {
-    		binarString = "0" + binarString;
-    	}
-    	return binarString;
+        for (var i = 0; i < 8 - length; i += 1) {
+            binarString = "0" + binarString;
+        }
+        return binarString;
     }
 
     const maskArrayString = str.split(".");
@@ -136,6 +136,10 @@ const domainAdressValidator = (str) => {
     return valid;
 }
 
+const stringValidator = (string, minValid = 0, maxValid = 50) => {
+    return (typeof string === 'string' ? (string.length >= minValid && string.length <= maxValid) : false);
+}
+
 const domainAdressWithoutProtocolValidator = (str) => {
     if (str.length > 255) {
         return false
@@ -165,6 +169,7 @@ const namePassValidator = (str) => {
 
 exports.domainAdressValidator = domainAdressValidator;
 exports.domainAdressWithoutProtocolValidator = domainAdressWithoutProtocolValidator;
+exports.stringValidator = stringValidator;
 exports.partOfUrlPathValidator = partOfUrlPathValidator;
 exports.providerPhoneValidator = providerPhoneValidator;
 exports.namePassValidator = namePassValidator;

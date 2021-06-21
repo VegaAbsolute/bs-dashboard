@@ -8,9 +8,21 @@ const oneParamValidator = (fieldName, value) => {
         case 'fake_gps': {
             return (typeof value === 'boolean')
         }
-        case 'ref_latitude':
+        case 'ref_latitude':{
+            if(typeof value !== 'number') {
+                return false;
+            }
+            if (value > 90 || value < -90) {
+                return false;
+            }
+            const re = /^[-]?[0-9]{1,3}([.]{1,1}[0-9]{1,5})?$/;
+            return re.test('' + value);
+        }
         case 'ref_longitude': {
             if(typeof value !== 'number') {
+                return false;
+            }
+            if (value > 180 || value < -180) {
                 return false;
             }
             const re = /^[-]?[0-9]{1,3}([.]{1,1}[0-9]{1,5})?$/;

@@ -85,7 +85,7 @@ const frequencyConfigsValidator = ({SX1301_conf: obj}, logger) => {
 
     for (let key in data) {
         if (data[key].enable) {
-            /**
+            /*
              *  Check elements to includes in the range of radio.
              */
             if (data[key].if < -400000 || data[key].if > 400000) {
@@ -93,10 +93,9 @@ const frequencyConfigsValidator = ({SX1301_conf: obj}, logger) => {
                 validationResult = false;
             };
 
-            /**
+            /*
              *  Check radios frequency valid
              */
-            //if (radios['radio_'+data[key].radio].freq < 863000000 || radios['radio_'+data[key].radio].freq > 870000000) {
             if (radios['radio_'+data[key].radio].freq < 863000000 || radios['radio_'+data[key].radio].freq > 925000000) {
                 console.log('Check radios frequency valid');
                 descriptionOfNotValid.push(`[main_radio_channels_validator]: Radio frequency = ${radios['radio_'+data[key].radio].freq} of the radio "${'radio_'+data[key].radio}" not included in the range (863000000 - 925000000)`);
@@ -104,8 +103,8 @@ const frequencyConfigsValidator = ({SX1301_conf: obj}, logger) => {
             };
 
             /*
-            *   Fill channels array
-            */
+             *  Fill channels array
+             */
             channels = [
                 ...channels,
                 Object.assign({}, data[key], {
