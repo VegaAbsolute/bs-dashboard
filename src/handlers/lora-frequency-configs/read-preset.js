@@ -1,5 +1,5 @@
 const fs = require('fs');
-
+const getGlobalProdInfo = require('../../read-prod-info-file').getGlobalProdInfo;
 const readPreset = ({presetName, serverDirName, logger}) => {
     logger.silly('readPreset');
     return new Promise((resolve, reject) => {
@@ -7,7 +7,15 @@ const readPreset = ({presetName, serverDirName, logger}) => {
         const selectedPreset = presetList[presetName];
         logger.info(`Selected preset "${presetName}"`);
         if (selectedPreset !== undefined) {
-            const presetFileName = selectedPreset.fileName;
+            let presetFileName = selectedPreset.fileName;
+
+            if(getGlobalProdInfo().Board_revision == "03" ){
+                presetFileName = "2_" + presetFileName;
+            }
+            if(getGlobalProdInfo().Board_revision == "04"){
+                presetFileName = "3_" + presetFileName;
+            }
+
             fs.access(serverDirName + `/LoRa-frequency-presets/presets/${presetFileName}`, (error) => {
                 if (error) {
                     logger.warn(`File "${presetFileName}" not found!`);

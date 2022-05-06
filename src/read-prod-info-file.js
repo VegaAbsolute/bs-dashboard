@@ -2,7 +2,6 @@ const fs = require('fs');
 const PATH_PROD_INFO_REV_1 = '/home/root/PROD_INFO';
 const PATH_PROD_INFO_REV_2 = '/etc/PROD_INFO';
 
-
 const existFile = (path) =>{
     try
     {
@@ -21,6 +20,11 @@ const initProdInfo = {
     GNSS: '---',
     Date: '---'
 };
+
+let globalProdInfo = initProdInfo // PAV
+
+function getGlobalProdInfo(){ return globalProdInfo; }
+
 const readProdInfoFile = () => {
     let filePath = '';
     if(existFile(PATH_PROD_INFO_REV_2)) filePath = PATH_PROD_INFO_REV_2;
@@ -45,7 +49,9 @@ const readProdInfoFile = () => {
             }
 
         }, {})
-
+        globalProdInfo = prodInfo;
+        if ( globalProdInfo.Board_revison !== undefined ) globalProdInfo.Board_revision = globalProdInfo.Board_revison;
+        if ( globalProdInfo.Software_revison !== undefined ) globalProdInfo.Software_revision = globalProdInfo.Software_revison;
         return prodInfo;
     } catch(e) {
         return initProdInfo
@@ -53,3 +59,4 @@ const readProdInfoFile = () => {
 }
 
 exports.readProdInfoFile = readProdInfoFile;
+module.exports.getGlobalProdInfo = getGlobalProdInfo; // PAV

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const getGlobalProdInfo = require('../../read-prod-info-file.js').getGlobalProdInfo;
 const mergeDeep =  require('../../utils/merge-deep.js').mergeDeep;
 const removeComentsFromLoraGlobalConf = require('../../utils/rm-cmnts-from-lora-globalconf.js').removeComentsFromLoraGlobalConf;
 const write = require('../../utils/lora-config-files-actions/write-config.js').writeConfig;
@@ -11,7 +12,15 @@ const setFrequencyPreset = ({SETTINGS, data, serverDirName, logger}) => {
         const selectedPreset = presetList[presetName];
         logger.info(`Selected preset "${presetName}"`);
         if (selectedPreset !== undefined) {
-            const presetFileName = selectedPreset.fileName;
+            let presetFileName = selectedPreset.fileName;
+
+            if(getGlobalProdInfo().Board_revision == "03" ){
+                presetFileName = "2_" + presetFileName;
+            }
+            if(getGlobalProdInfo().Board_revision == "04"){
+                presetFileName = "3_" + presetFileName;
+            }
+
             fs.access(serverDirName + `/LoRa-frequency-presets/presets/${presetFileName}`, (error) => {
                 if (error) {
                     logger.warn(`File "${presetFileName}" not found!`);

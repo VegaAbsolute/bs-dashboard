@@ -18,7 +18,10 @@ const readSettings = (MAIN_DIR, logger, next) => {
     if(!isNaN(tempSoftwareRevision)) softwareRevision = tempSoftwareRevision;
     if ( softwareRevision >= 2 ) pathRootSettings = '/src/02-root-settings.json';
 
-
+    
+    if(prodInfo.Board_revision == "03" || prodInfo.Board_revision == "04"){
+        pathRootSettings = '/src/03-root-settings.json';
+    }
 
 
     try {
@@ -50,7 +53,7 @@ const readSettings = (MAIN_DIR, logger, next) => {
         //let addressProdInfo = '/home/root/PROD_INFO';
 
         
-        next(undefined, mergedConfigs,prodInfo)
+        next(undefined, mergedConfigs, prodInfo)
     } else {
         next('Fatal error! Cant read root-settings file!!', undefined, undefined)
     }

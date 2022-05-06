@@ -12,6 +12,7 @@ const writeConfig = ({SETTINGS, PROD_INFO, data, logger}) => {
     let validSoftwareRevision = validPROD_INFO && PROD_INFO.Software_revision;
     if(validSoftwareRevision) tempSoftwareRevision = parseInt(PROD_INFO.Software_revision);
     
+
     const dataMask = {
         ref_latitude: null,
         ref_longitude: null,
@@ -23,10 +24,10 @@ const writeConfig = ({SETTINGS, PROD_INFO, data, logger}) => {
     logger.silly(newConfigs);
     const validationResult = gpsLoraConfValidator(Object.assign({}, newConfigs, {use_gps: data.use_gps}), logger);
     logger.info('Is valid new configs for write to "global_conf.json" = ' + validationResult.isValid);
-//ttyS1
+
     if ( softwareRevision >= 2 ) newConfigs.gps_tty_path = (data.use_gps === 'enabled') ? '/dev/ttyS1' : null;
     else newConfigs.gps_tty_path = (data.use_gps === 'enabled') ? '/dev/ttyO1' : null;
-
+    
     const result = write({
         SETTINGS,
         data: {gateway_conf: newConfigs},

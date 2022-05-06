@@ -69,7 +69,7 @@ try {
                 logger.silly(PROD_INFO);
 
                 const ISSUPPORT3G = (SETTINGS.wireless3GConfigs.isSupported === 'auto') ? (
-                    PROD_INFO.GSM !== null
+                    PROD_INFO.GSM != null
                 ) : (
                         SETTINGS.wireless3GConfigs.isSupported === 'true'
                     );
