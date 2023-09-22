@@ -25,9 +25,25 @@ const writeConfig = ({SETTINGS, PROD_INFO, data, logger}) => {
     const validationResult = gpsLoraConfValidator(Object.assign({}, newConfigs, {use_gps: data.use_gps}), logger);
     logger.info('Is valid new configs for write to "global_conf.json" = ' + validationResult.isValid);
 
-    if ( softwareRevision >= 2 ) newConfigs.gps_tty_path = (data.use_gps === 'enabled') ? '/dev/ttyS1' : null;
-    else newConfigs.gps_tty_path = (data.use_gps === 'enabled') ? '/dev/ttyO1' : null;
-    
+    if (PROD_INFO.Board_revision === "05" || PROD_INFO.Board_revision === "06" || PROD_INFO.Board_revision === "07") {
+        newConfigs.gps_tty_path =
+                data.use_gps === "enabled" ? "/dev/ttymxc2" : null;
+    } else {
+        if (softwareRevision >= 2)
+            newConfigs.gps_tty_path =
+                data.use_gps === "enabled" ? "/dev/ttyS1" : null;
+        else
+            newConfigs.gps_tty_path =
+                data.use_gps === "enabled" ? "/dev/ttyO1" : null;
+    }
+
+    if (PROD_INFO.Board_revision === "06" || PROD_INFO.Board_revision === "07") {
+        newConfigs.gps_active_script =
+                data.use_gps === "enabled" ? "echo default-on >/sys/class/leds/led-gps/trigger" : "exit 0";
+        newConfigs.gps_passive_script =
+                data.use_gps === "enabled" ? "echo heartbeat > /sys/class/leds/led-gps/trigger" : "exit 0";
+    }
+
     const result = write({
         SETTINGS,
         data: {gateway_conf: newConfigs},

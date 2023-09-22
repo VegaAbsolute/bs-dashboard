@@ -12,9 +12,11 @@ const $3gConfigsHandler = ({
     try {
         const { cmd = '', data = {}, loginToken = '' } = request.body;
         const PROD_INFO = appParams.PROD_INFO;
-        const { fileDir, fileName, interfaceManagerFileDir, interfaceManagerFileName } = appParams.SETTINGS.wireless3GConfigs;
-        const filePath = fileDir + fileName;
-        const interfaceManagerFilePath = interfaceManagerFileDir + interfaceManagerFileName;
+        //const { fileDir, fileName, interfaceManagerFileDir, interfaceManagerFileName } = appParams.SETTINGS.wireless3GConfigs;
+        const wireless3GConfigs = appParams.SETTINGS.wireless3GConfigs;
+
+        // const filePath = fileDir + fileName;
+        // const interfaceManagerFilePath = interfaceManagerFileDir + interfaceManagerFileName;
 
         let softwareRevision = 1;
         let tempSoftwareRevision = NaN;
@@ -39,7 +41,7 @@ const $3gConfigsHandler = ({
             case 'get_3g_conf': {
                 logger.silly('handler case: get_3g_conf');
                 const readConfig = require('./read-config.js').readConfig;
-                const configs = readConfig({softwareRevision, filePath, interfaceManagerFilePath, logger });
+                const configs = readConfig({softwareRevision, PROD_INFO, wireless3GConfigs, logger });
                 const result = {
                     cmd,
                     result: true,
@@ -52,8 +54,19 @@ const $3gConfigsHandler = ({
 
             case 'set_3g_conf': {
                 logger.debug('handler case: set_3g_conf');
-                const writeConfig = require('./write-config.js').writeConfig;
-                const writeResult = writeConfig({ softwareRevision, filePath, interfaceManagerFilePath, data, logger });
+                let writeResult;
+
+                if(PROD_INFO.Board_revision === "05" || PROD_INFO.Board_revision === "06" || PROD_INFO.Board_revision === "07"){
+                    const writeConfigs_r5 = require('./write-config.js').writeConfigs_r5;
+                    writeResult = writeConfigs_r5(wireless3GConfigs, data, logger);
+                }else{
+                    const { fileDir, fileName, interfaceManagerFileDir, interfaceManagerFileName } = appParams.SETTINGS.wireless3GConfigs;
+                    const filePath = fileDir + fileName;
+                    const interfaceManagerFilePath = interfaceManagerFileDir + interfaceManagerFileName;
+                    const writeConfig = require('./write-config.js').writeConfig;
+                    writeResult = writeConfig({ softwareRevision, filePath, interfaceManagerFilePath, data, logger });
+                }
+                
 
                 if (writeResult.isValid) {
                     response.json({ cmd, result: true, msg: 'success' });

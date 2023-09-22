@@ -26,8 +26,14 @@ const readConfig = ({SETTINGS, PROD_INFO, logger}) => {
     const fullConfigs = read({SETTINGS, logger});
     let sendConfigs = parseObjectByMask(fullConfigs, dataMask, true).gateway_conf;
 
-    if ( softwareRevision >= 2 ) sendConfigs.use_gps = (fullConfigs.gateway_conf.gps_tty_path === '/dev/ttyS1') ? 'enabled' : 'disabled';
-    else sendConfigs.use_gps = (fullConfigs.gateway_conf.gps_tty_path === '/dev/ttyO1') ? 'enabled' : 'disabled';
+    if(PROD_INFO.Board_revision === "05" || PROD_INFO.Board_revision == "06" || PROD_INFO.Board_revision == "07"){
+        sendConfigs.use_gps = (fullConfigs.gateway_conf.gps_tty_path === '/dev/ttymxc2') ? 'enabled' : 'disabled';
+    }else{
+        if ( softwareRevision >= 2 ) sendConfigs.use_gps = (fullConfigs.gateway_conf.gps_tty_path === '/dev/ttyS1') ? 'enabled' : 'disabled';
+        else sendConfigs.use_gps = (fullConfigs.gateway_conf.gps_tty_path === '/dev/ttyO1') ? 'enabled' : 'disabled';
+    }
+
+
 
 
     logger.silly(sendConfigs);

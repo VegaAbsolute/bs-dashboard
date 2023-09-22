@@ -1,3 +1,21 @@
+const exec = require("child_process").exec;
+
+function getLogs_r5(){
+    return new Promise((resolve,reject) => {
+        exec("journalctl -n 25 -u lora_pkt_fwd", (err, stdout, stderr) => {
+            if(err){
+                reject(err);
+            }
+
+            const currentTime = Date.now();
+            const logLines = stdout.split("\n");
+            const resultLogs = logLines.map((value, index) => ({ rowId: currentTime + index, row: value }));
+
+            resolve(resultLogs)
+        });
+    }) 
+}
+
 const loraLogsHandler = (/*{cmd, loginToken, LoraLogger, response, logger}*/{
     request,
     response,
@@ -33,24 +51,39 @@ const loraLogsHandler = (/*{cmd, loginToken, LoraLogger, response, logger}*/{
         logger.info('login_correct');
 
         switch (cmd) {
-            case 'get_lora_log': {
-                logger.silly('handler case: get_lora_log');
+            case "get_lora_log": {
+                logger.silly("handler case: get_lora_log");
 
+                if (PROD_INFO.Board_revision === "05" || PROD_INFO.Board_revision === "06" || PROD_INFO.Board_revision === "07") {
 
-                const result = {
-                    cmd: 'get_lora_log',
-                    result: true,
-                    msg: 'success',
-                    data: LoraLogger.getLog(loginToken)
+                    getLogs_r5().then((logs) => {
+                        const result = {
+                            cmd: "get_lora_log",
+                            result: true,
+                            msg: "success",
+                            data: logs,
+                        };
+                        response.json(result);
+                    });
+                    
+                } else {
+                    const logData = LoraLogger.getLog(loginToken);
+                    const result = {
+                        cmd: "get_lora_log",
+                        result: true,
+                        msg: "success",
+                        data: logData,
+                    };
+                    response.json(result);
                 }
-                response.json(result);
+
                 break;
             }
 
             default: {
-                logger.silly('handler case: default');
-                logger.warn(cmd + ' - unknown_command');
-                response.json({ cmd, result: false, msg: 'unknown_command' });
+                logger.silly("handler case: default");
+                logger.warn(cmd + " - unknown_command");
+                response.json({ cmd, result: false, msg: "unknown_command" });
             }
         }
     } catch (error) {

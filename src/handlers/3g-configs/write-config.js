@@ -117,8 +117,120 @@ function writeConfigs_r2 ( configs, pingConfigs, path, logger )
     return true;
 }
 
+function writeProviderConfig_r5(path, apn, phone){
+    const apnRegexp = /(?<="IP",")([^"]*)(?=")/;
+    const phoneRegexp = /(?<=ATD)(\*\d+#)/;
+
+    let providerData = fs.readFileSync(path, "utf8");
+
+    const apnMatch = providerData.match(apnRegexp);
+    if (apnMatch.length > 0) {
+        providerData = providerData.replace(apnRegexp, apn);
+    }
+
+    const phoneMatch = providerData.match(phoneRegexp);
+    if (phoneMatch.length > 0) {
+        providerData = providerData.replace(phoneRegexp, phone);
+    }
+
+    fs.writeFileSync(path, providerData);
+}
+
+function writeUsersConfig_r5(path, user1Login, user1Pass, user2Login, user2Pass){
+    let userData = fs.readFileSync(path, "utf8");
+    const rows = userData.split("\n");
+    rows[2] = `${user1Login || "\"\""} * ${user1Pass || "\"\""} *`;
+    rows[3] = `${user2Login || "\"\""} * ${user2Pass || "\"\""} *`;
+    const result = rows.join("\n");
+    fs.writeFileSync(path, result);
+}
+
+function writeInterfaceTesterConfig_r5(path, ip1, ip2) {
+    const ipModemRegexp =
+        /(?<=test_ip_via_modem=)((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))/;
+    const ipEthernetRegexp =
+        /(?<=test_ip_via_ethernet=)((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))/;
+
+    let interfaceData = fs.readFileSync(path, "utf8");
+
+    const ipModemMatch = interfaceData.match(ipModemRegexp);
+    if (ipModemMatch.length > 0) {
+        interfaceData = interfaceData.replace(ipModemRegexp, ip1);
+    }
+
+    const ipEthernetMatch = interfaceData.match(ipEthernetRegexp);
+    if (ipEthernetMatch.length > 0) {
+        interfaceData = interfaceData.replace(ipEthernetRegexp, ip2);
+    }
+    
+    fs.writeFileSync(path, interfaceData);
+}
+
+function writeConfigs_r5 (wireless3GConfigs, data, logger){
+    logger.debug('write ping configs and 3G configs');
+
+    const Init2 = data.Init2 || "internet";
+    const Phone = data.Phone || "*99#";
+    const Username = data.Username || "";
+    const Password = data.Password || "";
+    const Init22 = data.Init22 || "internet";
+    const Phone2 = data.Phone2 || "*99#";
+    const Username2 = data.Username2 || "";
+    const Password2 = data.Password2 || "";
+    const REF_IP1 = data.REF_IP1 || '8.8.8.8';
+    const REF_IP2 = data.REF_IP2 || '8.8.8.8';
+
+    //validation
+    const tempData1 = {
+        Init2: Init2,
+        Phone: Phone,
+        Username: Username,
+        Password: Password,
+    }
+
+    const tempData2 = {
+        Init2: Init22,
+        Phone: Phone2,
+        Username: Username2,
+        Password: Password2,
+    }
+
+    const pingConfig = {
+        REF_IP1: REF_IP1,
+        REF_IP2: REF_IP2,
+    }
+
+    const isConfig1Valid = $3GConfigsValidator(tempData1, logger);
+    const isConfig2Valid = $3GConfigsValidator(tempData2, logger);
+    const isPingConfigValid = $3GConfigsValidator(pingConfig, logger);
+    const isValid = isConfig1Valid.isValid && isConfig2Valid.isValid && isPingConfigValid.isValid;
+    if(!isValid){
+        return {isValid: isValid, msg: [...isConfig1Valid.msg, ...isConfig2Valid.msg, ...isPingConfigValid.msg]};
+    }
+
+    // providers ( apn, phone )
+    // ppp/provider1-connect-chat
+    const provider1Path = wireless3GConfigs.providerFileDir + wireless3GConfigs.providerFileName1;
+    writeProviderConfig_r5(provider1Path, Init2, Phone); 
+    // ppp/provider2-connect-chat
+    const provider2Path = wireless3GConfigs.providerFileDir + wireless3GConfigs.providerFileName2;
+    writeProviderConfig_r5(provider2Path, Init22, Phone2); 
+
+    // chap-secrets / pap-secrets
+    const usersPath1 = wireless3GConfigs.usersFileDir + wireless3GConfigs.usersFileName1;
+    const usersPath2 = wireless3GConfigs.usersFileDir + wireless3GConfigs.usersFileName2;
+    writeUsersConfig_r5(usersPath1, Username, Password, Username2, Password2);
+    writeUsersConfig_r5(usersPath2, Username, Password, Username2, Password2);
+
+    // etc/interface_tester/interface_tester.cfg
+    const interfaceConfigPath = wireless3GConfigs.interfaceTesterFileDir + wireless3GConfigs.interfaceTesterFileName;
+    writeInterfaceTesterConfig_r5(interfaceConfigPath, REF_IP1, REF_IP2);
+    return { isValid };
+}
+
 const writeConfig = ({softwareRevision,filePath, interfaceManagerFilePath, data: dataObj, logger}) => {
     logger.debug('write config');
+
     const dataMask = {
         Init2: null,
         Phone: null,
@@ -184,3 +296,4 @@ const writeConfig = ({softwareRevision,filePath, interfaceManagerFilePath, data:
 }
 
 exports.writeConfig = writeConfig;
+module.exports.writeConfigs_r5 = writeConfigs_r5;

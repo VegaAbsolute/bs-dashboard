@@ -162,7 +162,7 @@ const providerPhoneValidator = (str) => {
 }
 
 const namePassValidator = (str) => {
-    const re = /^[a-z0-9]{1,16}$/i; //  i - игнорировать регистр
+    const re = /^[a-z0-9]{0,16}$/i; //  i - игнорировать регистр
     const valid = re.test(str);
     return valid;
 }

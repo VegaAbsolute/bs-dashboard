@@ -1,0 +1,38 @@
+{
+	"serverConfigs": {
+		"description": "",
+		"frontAppPort": 80,
+		"serverPort": 3001,
+		"language": "ru",
+		"isRebootLoraOnSaveConfigs": true
+	},
+	"loraGlobalConfigs": {
+		"description": "",
+		"filePath": "/etc/LoRa/",
+		"fileName": "global_conf.json"
+	},
+	"loraVersionFile": {
+		"description": "",
+		"fileDir": "/opt/",
+		"fileName": "VERSION"
+	},
+	"networkConfigs": {
+		"description": "",
+		"fileDir": "/etc/systemd/network/",
+		"fileName": "80-wired.network"
+	},
+	"wireless3GConfigs": {
+		"description": "isSupported-{true/false/auto('auto' means auto checking)} ",
+		"isSupported": "auto",
+		"interfaceTesterFileDir": "/etc/interface_tester/",
+		"interfaceTesterFileName": "interface_tester.cfg",
+		"usersFileDir": "/etc/ppp/",
+		"usersFileName1": "pap-secrets",
+		"usersFileName2": "chap-secrets",
+		"providerFileDir": "/etc/ppp/",
+		"providerFileName1": "provider1-connect-chat",
+		"providerFileName2": "provider2-connect-chat"
+	},
+	"loggerLevel": "info",
+	"maxLevelForConsoleLogger": "verbose"
+}

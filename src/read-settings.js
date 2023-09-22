@@ -10,17 +10,23 @@ const readSettings = (MAIN_DIR, logger, next) => {
      */
     let prodInfo = readProdInfoFile();
 
+   // console.log(prodInfo);
+
     let softwareRevision = 1;
     let tempSoftwareRevision = NaN;
     let validPROD_INFO = typeof prodInfo === 'object' && prodInfo !== null;
     let validSoftwareRevision = validPROD_INFO && prodInfo.Software_revision;
     if(validSoftwareRevision) tempSoftwareRevision = parseInt(prodInfo.Software_revision);
     if(!isNaN(tempSoftwareRevision)) softwareRevision = tempSoftwareRevision;
+
     if ( softwareRevision >= 2 ) pathRootSettings = '/src/02-root-settings.json';
 
     
     if(prodInfo.Board_revision == "03" || prodInfo.Board_revision == "04"){
         pathRootSettings = '/src/03-root-settings.json';
+    }
+    else if(prodInfo.Board_revision == "05" || prodInfo.Board_revision == "06" || prodInfo.Board_revision == "07"){
+        pathRootSettings = '/src/05-root-settings.json';
     }
 
 
@@ -49,9 +55,6 @@ const readSettings = (MAIN_DIR, logger, next) => {
         }
 
         const mergedConfigs = parseObjectByMask(settings, baseSettings);
-        
-        //let addressProdInfo = '/home/root/PROD_INFO';
-
         
         next(undefined, mergedConfigs, prodInfo)
     } else {

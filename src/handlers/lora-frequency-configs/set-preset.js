@@ -14,11 +14,12 @@ const setFrequencyPreset = ({SETTINGS, data, serverDirName, logger}) => {
         if (selectedPreset !== undefined) {
             let presetFileName = selectedPreset.fileName;
 
-            if(getGlobalProdInfo().Board_revision == "03" ){
+            if(getGlobalProdInfo().Board_revision == "03" || getGlobalProdInfo().Board_revision == "05"){
                 presetFileName = "2_" + presetFileName;
-            }
-            if(getGlobalProdInfo().Board_revision == "04"){
+            }else if(getGlobalProdInfo().Board_revision == "04" || getGlobalProdInfo().Board_revision == "07"){
                 presetFileName = "3_" + presetFileName;
+            }else if(getGlobalProdInfo().Board_revision == "06"){
+                presetFileName = "4_" + presetFileName;
             }
 
             fs.access(serverDirName + `/LoRa-frequency-presets/presets/${presetFileName}`, (error) => {

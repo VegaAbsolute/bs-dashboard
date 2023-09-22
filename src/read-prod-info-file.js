@@ -1,6 +1,7 @@
 const fs = require('fs');
 const PATH_PROD_INFO_REV_1 = '/home/root/PROD_INFO';
 const PATH_PROD_INFO_REV_2 = '/etc/PROD_INFO';
+const PATH_PROD_INFO_REV_5 = '/opt/PROD_INFO';
 
 const existFile = (path) =>{
     try
@@ -21,7 +22,7 @@ const initProdInfo = {
     Date: '---'
 };
 
-let globalProdInfo = initProdInfo // PAV
+let globalProdInfo = initProdInfo;
 
 function getGlobalProdInfo(){ return globalProdInfo; }
 
@@ -29,6 +30,7 @@ const readProdInfoFile = () => {
     let filePath = '';
     if(existFile(PATH_PROD_INFO_REV_2)) filePath = PATH_PROD_INFO_REV_2;
     else if(existFile(PATH_PROD_INFO_REV_1)) filePath = PATH_PROD_INFO_REV_1;
+    else if(existFile(PATH_PROD_INFO_REV_5)) filePath = PATH_PROD_INFO_REV_5;
     else return initProdInfo;
 
     try {
@@ -59,4 +61,4 @@ const readProdInfoFile = () => {
 }
 
 exports.readProdInfoFile = readProdInfoFile;
-module.exports.getGlobalProdInfo = getGlobalProdInfo; // PAV
+module.exports.getGlobalProdInfo = getGlobalProdInfo;

@@ -69,7 +69,7 @@ try {
                 logger.silly(PROD_INFO);
 
                 const ISSUPPORT3G = (SETTINGS.wireless3GConfigs.isSupported === 'auto') ? (
-                    PROD_INFO.GSM != null
+                    PROD_INFO.GSM != null && PROD_INFO.GSM !== ""
                 ) : (
                         SETTINGS.wireless3GConfigs.isSupported === 'true'
                     );
@@ -230,7 +230,9 @@ try {
                 });
 
                 const LoraLogger = new (require('./src/handlers/lora-logs/lora-logger.js').LoraLogger)({ logger, Session });
-                LoraLogger.listen({ host: '127.0.0.1', port: 3003 });
+                if(PROD_INFO.Board_revision !== "05"){
+                    LoraLogger.listen({ host: '127.0.0.1', port: 3003 });
+                }
 
                 /*
                 *server API
@@ -402,7 +404,7 @@ try {
                         LoraLogger,
 
                         getState: () => dashboardState,
-                        appParams
+                        appParams,
                     })
                 })
                 serverApp.post('/lora-other-configs', (request, response) => {
